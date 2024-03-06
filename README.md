@@ -9,6 +9,7 @@ You can find is original project [here](https://github.com/PierreMarTich/Broken_
 ### Image
 Wrote some trash python with the help of a little chatgpt and we are in business.
 
+**Fun Fact**: The chance of generating the same clock as someone else is ≈720! or greater than 1 in 2.60e1746.  
 ### arduino stuff 
 more to come here
 ## Hardware
