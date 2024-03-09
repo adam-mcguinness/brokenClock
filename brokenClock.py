@@ -128,7 +128,7 @@ def draw_clock(center, radius, current_hour, current_minute):
 def calculate_position(rows, cols):
 
     x = (cols + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2)
-    y = (rows + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2)
+    y = fig_height - ((rows + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2))
     return x, y
 
 
