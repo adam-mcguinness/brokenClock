@@ -4,27 +4,27 @@ import random
 from matplotlib.patches import Circle
 
 # Clock Face and Sizing
-clock_face = True
+clock_face = False
 clock_face_edge_color = 'white'
 clock_face_face_color = 'none'
 clock_face_line_width = 2
 
 # Quarter Hour Markers
-add_quarter_hour_markers = False
+add_quarter_hour_markers = True
 quarter_hour_line_color = 'white'
 quarter_hour_line_length = 0.1
 quarter_hour_line_width = 1
 quarter_hour_line_offset = 0.95
 
 # 5 Minute Markers
-add_5_minute_markers = False
+add_5_minute_markers = True
 five_minute_color = 'white'
-five_minute_line_length = 0.1
-five_minute_line_width = 1
+five_minute_line_length = 0.075
+five_minute_line_width = 0.5
 five_minute_line_offset = 0.95
 
 # 1 Minute Markers
-add_minute_markers = False
+add_minute_markers = True
 minute_line_color = 'white'
 minute_line_length = 0.05
 minute_line_width = 0.25
@@ -43,7 +43,7 @@ grid_rows, grid_cols = 24, 30
 clock_diameter = 30
 spacing = 10
 background_color = 'black'
-randomize_clocks = False
+randomize_clocks = True
 
 
 def unit_converter(unit):
@@ -84,7 +84,7 @@ def calculate_hand_points(center, radius, angle_degrees, hand_length):
 def draw_clock(center, radius, current_hour, current_minute):
     # Draw the clock face
     radius_in_inches = unit_converter(clock_diameter) / 2
-    print(radius_in_inches)
+    print(f"Drawing clock for {hour}:{minute:02d}")
     if clock_face:
         ax.add_artist(Circle(center, radius_in_inches, edgecolor=clock_face_edge_color, facecolor=clock_face_face_color,
                              lw=clock_face_line_width))
