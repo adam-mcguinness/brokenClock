@@ -5,8 +5,8 @@
 
 #define RTC_ADDRESS 0x68 // I2C address of the RTC
 #define NUM_LEDS 720
-#define DATA_PIN A1
-#define CLOCK_PIN A3
+#define WIDTH_IN_TILES 10
+#define HEIGHT_IN_TILES 8
 
 #define HOUR_BUTTON_PIN A4
 #define MINUTE_BUTTON_PIN A5
@@ -781,8 +781,6 @@ const uint16_t segmentIndexes[7][5] = {
 void setup() {
 
   SPI.begin(); // Initialize SPI communication
-  pinMode(DATA_PIN, OUTPUT); // Set SPI pins as outputs
-  pinMode(CLOCK_PIN, OUTPUT);
 
   pinMode(HOUR_BUTTON_PIN, INPUT_PULLUP);
   pinMode(MINUTE_BUTTON_PIN, INPUT_PULLUP);
@@ -830,10 +828,8 @@ void loop() {
         minutesIntoCycle = minutesIntoCycle % 720; // Ensures wrapping at the end of 12-hour cycle
 
         if (minutesIntoCycle < NUM_LEDS) {
-            lightUpLED(minutesIntoCycle);
-            uint16_t serpentineIndex = calculateSerpentineIndex(minutesIntoCycle);
-            Serial.println(minutesIntoCycle);
-            Serial.println(serpentineIndex);
+            int ledIndex = getLedIndex(minutesIntoCycle);
+            lightUpLED(ledIndex);
         } else {
             Serial.println("Error: Calculated LED index is out of range.");
         }
@@ -895,9 +891,6 @@ void DisplayTime() {
     };
 
     LightUpDigits(digitsAndIndices, 6);
-
-    // Optionally, you can add an indicator for AM/PM if desired
-    // This could be a specific LED or color change
 }
 
 void LightUpDigits(const int digits[][2], int numDigits) {
@@ -917,7 +910,9 @@ void LightUpDigits(const int digits[][2], int numDigits) {
                 if (digitSegmentMap[digit][segment]) {
                     // If this segment should be lit, check if current LED is part of it, considering the startIndex
                     for (int j = 0; segmentIndexes[segment][j] != 0xFFFF; j++) {
-                        uint16_t adjustedIndex = startIndex + segmentIndexes[segment][j];
+                        // Adjust each segment index through the getLedIndex function
+                        uint16_t originalIndex = segmentIndexes[segment][j];
+                        uint16_t adjustedIndex = getLedIndex(startIndex + originalIndex);
                         if (i == adjustedIndex) {
                             lightUp = true;
                             break;
@@ -948,6 +943,7 @@ void LightUpDigits(const int digits[][2], int numDigits) {
     }
 }
 
+
 void AdjustTime(TimeUnit unit) {
     DateTime now = rtc.now();
     int year = now.year();
@@ -973,24 +969,22 @@ void AdjustTime(TimeUnit unit) {
     rtc.adjust(DateTime(year, month, day, hour, minute, second));
 }
 
-uint16_t calculateSerpentineIndex(uint16_t linearIndex) {
-    // Calculate the original row and column from the linear index
-    uint16_t row = linearIndex / totalColumns;
-    uint16_t column = linearIndex % totalColumns;
+int getLedIndex(int n) {
+    int totalWidth = WIDTH_IN_TILES * 3;
     
-    // Determine if the row is reversed in the serpentine pattern
-    bool isRowReversed = (row % 2 == 1);
-
-    uint16_t serpentineColumn;
-    if (isRowReversed) {
-        // For reversed rows, calculate the column from the opposite end
-        serpentineColumn = totalColumns - 1 - column;
-    } else {
-        // For non-reversed rows, the column index remains the same
-        serpentineColumn = column;
-    }
-
-    // Calculate the global index based on the serpentine layout
-    uint16_t serpentineIndex = row * totalColumns + serpentineColumn;
-    return serpentineIndex;
+    int r = n / totalWidth;
+    int c = n % totalWidth;
+    
+    int tileRow = r / 3;
+    int tileColumn = c / 3;
+    
+    int withinTileRow = r % 3;
+    int withinTileColumn = c % 3;
+    
+    int indexInTile = withinTileRow * 3 + withinTileColumn;
+    
+    int tileLinearIndex = tileRow * WIDTH_IN_TILES + tileColumn;
+    
+    int overallIndex = tileLinearIndex * 9 + indexInTile;
+    return overallIndex;
 }
