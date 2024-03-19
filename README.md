@@ -16,7 +16,7 @@ The main program is written in arduino for use with the attiny microcontroller. 
 - Mapping from the index to the tile-able 3x3 index.
 - 3 buttons for adjusting time with digital display utilizing the clock faces as digits.
   - hour increment button
-  - minuite increment button
+  - minute increment button
   - second reset button
 ## Hardware
 
