@@ -17,14 +17,14 @@ quarter_hour_line_width = 1
 quarter_hour_line_offset = 0.95
 
 # 5 Minute Markers
-add_5_minute_markers = True
+add_5_minute_markers = False
 five_minute_color = 'white'
 five_minute_line_length = 0.075
 five_minute_line_width = 0.5
 five_minute_line_offset = 0.95
 
 # 1 Minute Markers
-add_minute_markers = True
+add_minute_markers = False
 minute_line_color = 'white'
 minute_line_length = 0.05
 minute_line_width = 0.25
@@ -43,7 +43,12 @@ grid_rows, grid_cols = 24, 30
 clock_diameter = 30
 spacing = 10
 background_color = 'black'
-randomize_clocks = True
+randomize_clocks = False
+
+# Tiles for Mapping
+leds_per_tile = 3
+width_in_tiles = grid_cols // leds_per_tile
+height_in_tiles = grid_rows // leds_per_tile
 
 
 def unit_converter(unit):
@@ -126,10 +131,30 @@ def draw_clock(center, radius, current_hour, current_minute):
 
 
 def calculate_position(rows, cols):
-
     x = (cols + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2)
-    y = fig_height - ((rows + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2))
+    y = fig_height - (
+            (rows + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2))
     return x, y
+
+
+def get_led_index(n):
+    total_width = width_in_tiles * 3
+    r = n // total_width
+    c = n % total_width
+    tile_row = r // 3
+    tile_column = c // 3
+    within_tile_row = r % 3
+    within_tile_column = c % 3
+    index_in_tile = within_tile_row * 3 + within_tile_column
+    tile_linear_index = tile_row * width_in_tiles + tile_column
+    overall_index = tile_linear_index * 9 + index_in_tile
+    return overall_index
+
+
+def generate_lookup_table():
+    max_n = width_in_tiles * 3 * height_in_tiles * 3
+    lookup_table = [get_led_index(n) for n in range(max_n)]
+    return lookup_table
 
 
 # Prepare the figure
@@ -167,7 +192,6 @@ for i, time in enumerate(times):
 # Save the figure
 plt.savefig("720_clocks.svg", format='svg', facecolor=background_color, edgecolor='none', dpi=100)
 
-
 # Output the time to position mapping
 
 led_indices = [-1] * 720
@@ -177,9 +201,18 @@ for time, pos in time_to_position.items():
     led_index = pos['row'] * grid_cols + pos['col']  # Convert row/col to LED index
     led_indices[minute_index] = led_index  # Assign LED index to the correct minute
 
-with open("led_indices_array.h", "w") as file:
+# output led index
+with open("led_indices_array.txt", "w") as file:
     file.write("const uint16_t ledMap[720] PROGMEM = {\n")
     for index in led_indices:
+        file.write(f"  {index},\n")
+    file.write("};\n")
+
+# output the mapping table for the LED matrix
+with open("led_matrix_map.txt", "w") as file:
+    file.write("const uint16_t matrixMap[720] PROGMEM = {\n")
+    lookup_table = [get_led_index(n) for n in range(720)]
+    for index in lookup_table:
         file.write(f"  {index},\n")
     file.write("};\n")
 
