@@ -201,20 +201,22 @@ for time, pos in time_to_position.items():
     led_index = pos['row'] * grid_cols + pos['col']  # Convert row/col to LED index
     led_indices[minute_index] = led_index  # Assign LED index to the correct minute
 
-# output led index
-with open("led_indices_array.txt", "w") as file:
-    file.write("const uint16_t ledMap[720] PROGMEM = {\n")
+# output led indexes for arduino library.
+with open("./arduino/led_arrays.h", "w") as file:
+    header = "#ifndef LED_ARRAYS\n#define LED_ARRAYS \n\n"
+    footer = "\n#endif"
+    file.write(header)
+    file.write("const uint16_t ledMap[720] PROGMEM = {")
     for index in led_indices:
-        file.write(f"  {index},\n")
+        file.write(f"  {index},")
     file.write("};\n")
 
-# output the mapping table for the LED matrix
-with open("led_matrix_map.txt", "w") as file:
-    file.write("const uint16_t matrixMap[720] PROGMEM = {\n")
+    file.write("const uint16_t matrixMap[720] PROGMEM = {")
     lookup_table = [get_led_index(n) for n in range(720)]
     for index in lookup_table:
-        file.write(f"  {index},\n")
+        file.write(f"  {index},")
     file.write("};\n")
+    file.write(footer)
 
 with open("720_clocks_index.txt", "w") as file:
     for time, pos in sorted(time_to_position.items(), key=lambda x: x[1]['row'] * grid_cols + x[1]['col']):
