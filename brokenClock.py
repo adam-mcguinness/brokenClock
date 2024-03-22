@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-from matplotlib.patches import Circle
+
+from matplotlib.collections import LineCollection
+from matplotlib.patches import Circle, Polygon
 
 # Clock Face and Sizing
 clock_face = False
@@ -11,16 +13,16 @@ clock_face_line_width = 2
 
 # Quarter Hour Markers
 add_quarter_hour_markers = True
-quarter_hour_line_color = 'white'
+quarter_hour_line_color = 'black'
 quarter_hour_line_length = 0.1
-quarter_hour_line_width = 1
+quarter_hour_line_width = 0.25
 quarter_hour_line_offset = 0.95
 
 # 5 Minute Markers
-add_5_minute_markers = False
-five_minute_color = 'white'
+add_5_minute_markers = True
+five_minute_color = 'black'
 five_minute_line_length = 0.075
-five_minute_line_width = 0.5
+five_minute_line_width = 0.01
 five_minute_line_offset = 0.95
 
 # 1 Minute Markers
@@ -31,18 +33,18 @@ minute_line_width = 0.25
 minute_line_offset = 0.95
 
 # Hands
-hand_color = 'white'
+hand_color = 'black'
 hour_hand_length = 0.5
-hour_hand_width = 2
+hour_hand_width = 0.25
 minute_hand_length = 0.8
-minute_hand_width = 1.5
+minute_hand_width = 0.01
 
 # Layout and Size
 units = 'mm'  # options are inches, cm, mm, feet, and meters
 grid_rows, grid_cols = 24, 30
 clock_diameter = 30
 spacing = 10
-background_color = 'black'
+background_color = 'none'
 randomize_clocks = False
 
 # Tiles for Mapping
@@ -63,6 +65,25 @@ def unit_converter(unit):
             return unit * 12
         case 'meters':
             return unit * 39.37
+
+
+def rectangle_edges(start, end, width):
+    # This function remains largely the same as before
+    direction = np.array(end) - np.array(start)
+    length = np.linalg.norm(direction)
+    if length == 0:
+        return []  # Prevent division by zero
+    direction /= length  # Normalize
+
+    perp_direction = np.array([-direction[1], direction[0]])
+    half_width_vector = width / 2 * perp_direction
+
+    v1 = np.array(start) - half_width_vector
+    v2 = np.array(start) + half_width_vector
+    v3 = np.array(end) + half_width_vector
+    v4 = np.array(end) - half_width_vector
+
+    return [v1, v2, v3, v4]  # No need to return to the first vertex for Polygon
 
 
 def calculate_marker_points(center, radius, angle_degrees, start_offset, line_length):
@@ -103,17 +124,40 @@ def draw_clock(center, radius, current_hour, current_minute):
 
     # Draw line indicators for 12, 3, 6, and 9
     if add_quarter_hour_markers:
-        for quarter_maker in [0, 3, 6, 9]:
-            start, end = calculate_marker_points(center, radius, quarter_maker * 30, quarter_hour_line_offset,
+        for quarter_marker in [0, 3, 6, 9]:
+            start, end = calculate_marker_points(center, radius, quarter_marker * 30, quarter_hour_line_offset,
                                                  quarter_hour_line_length)
-            ax.plot([start[0], end[0]], [start[1], end[1]], color=quarter_hour_line_color, lw=quarter_hour_line_width, clip_on=False)
+
+            converted_line_width = unit_converter(quarter_hour_line_width)
+
+            # Calculate rectangle corners
+            corners = rectangle_edges(start, end, converted_line_width)
+
+            # Draw rectangle as a filled polygon
+            if corners:
+                polygon = Polygon(corners, closed=True, color=quarter_hour_line_color, edgecolor="none")
+                ax.add_patch(polygon)
 
     # Draw dots for 1, 2, 4, 5, 7, 8, 10, and 11
     if add_5_minute_markers:
         for five_minute_marker in [1, 2, 4, 5, 7, 8, 10, 11]:
             start, end = calculate_marker_points(center, radius, five_minute_marker * 30, five_minute_line_offset,
                                                  five_minute_line_length)
-            ax.plot([start[0], end[0]], [start[1], end[1]], color=five_minute_color, lw=five_minute_line_width, clip_on=False)
+
+            # Convert line width to millimeters (or to your plotting units)
+            converted_line_width = unit_converter(five_minute_line_width)
+
+            # Adjust the end point based on the converted length, if necessary
+            # This part is omitted for simplicity as it depends on how you define length
+
+            # Calculate rectangle corners for the polygon
+            corners = rectangle_edges(start, end, converted_line_width)
+
+            # Draw rectangle as a filled polygon with specified color
+            if corners:
+                polygon = Polygon(corners, closed=True, facecolor=five_minute_color,
+                                  edgecolor="none")  # Assuming you want no edge line
+                ax.add_patch(polygon)
 
     # Convert hour and minute to angles and radians for the hands
     hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
@@ -121,13 +165,32 @@ def draw_clock(center, radius, current_hour, current_minute):
 
     # Draw hour hand
     hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees, hour_hand_length)
-    ax.plot([hour_hand_start[0], hour_hand_end[0]], [hour_hand_start[1], hour_hand_end[1]], color=hand_color,
-            lw=hour_hand_width, clip_on=False)
+
+    # Convert hour hand width to your plot's units, if necessary
+    converted_hour_hand_width = unit_converter(hour_hand_width)
+
+    # Calculate the corners of the rectangle representing the hour hand
+    hour_hand_corners = rectangle_edges(hour_hand_start, hour_hand_end, converted_hour_hand_width)
+
+    # Draw the hour hand as a filled polygon
+    if hour_hand_corners:
+        hour_hand_polygon = Polygon(hour_hand_corners, closed=True, facecolor=hand_color, edgecolor="none")
+        ax.add_patch(hour_hand_polygon)
 
     # Draw minute hand
+    # Calculate the minute hand points
     minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees, minute_hand_length)
-    ax.plot([minute_hand_start[0], minute_hand_end[0]], [minute_hand_start[1], minute_hand_end[1]], color=hand_color,
-            lw=minute_hand_width, clip_on=False)
+
+    # Convert minute hand width to your plot's units, if necessary
+    converted_minute_hand_width = unit_converter(minute_hand_width)
+
+    # Calculate the corners of the rectangle representing the minute hand
+    minute_hand_corners = rectangle_edges(minute_hand_start, minute_hand_end, converted_minute_hand_width)
+
+    # Draw the minute hand as a filled polygon
+    if minute_hand_corners:
+        minute_hand_polygon = Polygon(minute_hand_corners, closed=True, facecolor=hand_color, edgecolor="none")
+        ax.add_patch(minute_hand_polygon)
 
 
 def calculate_position(rows, cols):
