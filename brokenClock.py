@@ -99,21 +99,21 @@ def draw_clock(center, radius, current_hour, current_minute):
         for minute_marker in range(60):
             start, end = calculate_marker_points(center, radius, minute_marker * 6, minute_line_offset,
                                                  minute_line_length)
-            ax.plot([start[0], end[0]], [start[1], end[1]], color=minute_line_color, lw=minute_line_width)
+            ax.plot([start[0], end[0]], [start[1], end[1]], color=minute_line_color, lw=minute_line_width, clip_on=False)
 
     # Draw line indicators for 12, 3, 6, and 9
     if add_quarter_hour_markers:
         for quarter_maker in [0, 3, 6, 9]:
             start, end = calculate_marker_points(center, radius, quarter_maker * 30, quarter_hour_line_offset,
                                                  quarter_hour_line_length)
-            ax.plot([start[0], end[0]], [start[1], end[1]], color=quarter_hour_line_color, lw=quarter_hour_line_width)
+            ax.plot([start[0], end[0]], [start[1], end[1]], color=quarter_hour_line_color, lw=quarter_hour_line_width, clip_on=False)
 
     # Draw dots for 1, 2, 4, 5, 7, 8, 10, and 11
     if add_5_minute_markers:
         for five_minute_marker in [1, 2, 4, 5, 7, 8, 10, 11]:
             start, end = calculate_marker_points(center, radius, five_minute_marker * 30, five_minute_line_offset,
                                                  five_minute_line_length)
-            ax.plot([start[0], end[0]], [start[1], end[1]], color=five_minute_color, lw=five_minute_line_width)
+            ax.plot([start[0], end[0]], [start[1], end[1]], color=five_minute_color, lw=five_minute_line_width, clip_on=False)
 
     # Convert hour and minute to angles and radians for the hands
     hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
@@ -122,12 +122,12 @@ def draw_clock(center, radius, current_hour, current_minute):
     # Draw hour hand
     hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees, hour_hand_length)
     ax.plot([hour_hand_start[0], hour_hand_end[0]], [hour_hand_start[1], hour_hand_end[1]], color=hand_color,
-            lw=hour_hand_width)
+            lw=hour_hand_width, clip_on=False)
 
     # Draw minute hand
     minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees, minute_hand_length)
     ax.plot([minute_hand_start[0], minute_hand_end[0]], [minute_hand_start[1], minute_hand_end[1]], color=hand_color,
-            lw=minute_hand_width)
+            lw=minute_hand_width, clip_on=False)
 
 
 def calculate_position(rows, cols):
