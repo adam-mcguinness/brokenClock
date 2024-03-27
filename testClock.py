@@ -1,62 +1,65 @@
 import ezdxf
-from math import sin, cos, radians, degrees, atan2
+import math
 
-def add_hand_and_arc(msp, center, length, width, angle, arc_radius):
-    # Calculate the vector components for the direction of the hand
-    angle_rad = radians(angle)
-    dx, dy = cos(angle_rad), sin(angle_rad)
+from shapely import MultiPolygon
+from shapely.geometry import Polygon, Point, LineString
+from shapely.ops import unary_union
 
-    # Calculate the hand's start and end points
-    start_x = center[0] + dx * arc_radius
-    start_y = center[1] + dy * arc_radius
-    end_x = center[0] + dx * (arc_radius + length)
-    end_y = center[1] + dy * (arc_radius + length)
-
-    # Determine the perpendicular direction for width
-    perp_dx = -dy * width / 2
-    perp_dy = dx * width / 2
-
-    # Calculate the endpoints of the hand width
-    p1 = (start_x + perp_dx, start_y + perp_dy)
-    p2 = (start_x - perp_dx, start_y - perp_dy)
-    p3 = (end_x - perp_dx, end_y - perp_dy)
-    p4 = (end_x + perp_dx, end_y + perp_dy)
-
-    # Draw the three-sided hand as two lines and a closing line at the end
-    msp.add_line(p1, p4)  # Top edge of the hand
-    msp.add_line(p4, p3)  # Bottom edge of the hand
-    msp.add_line(p3, p2)  # Closing line at the end of the hand
-
-    return p1, p2  # Return the points to connect with the arc
+def create_extended_hand_shape(center, direction, length, width, extend_length):
+    """
+    Creates a hand shape extending from the clock center towards a direction with an additional length.
+    """
+    end_x = center[0] + (length + extend_length) * math.cos(math.radians(direction))
+    end_y = center[1] + (length + extend_length) * math.sin(math.radians(direction))
+    line = LineString([center, (end_x, end_y)])
+    return line.buffer(width / 2, cap_style=3)  # Squared ends
 
 # Initialize a new DXF document
 doc = ezdxf.new('R2010')
 msp = doc.modelspace()
 
-# Define parameters
-center = (100, 100)
-hour_hand_length = 60
-hour_hand_width = 8
-minute_hand_length = 90
-minute_hand_width = 6
-circle_radius = 15  # The radius for the arcs connecting the hands
-hour_angle = 30
-minute_angle = 150
+# Clock center and radius
+clock_center = (0, 0)
+clock_radius = 10  # Clock face radius
 
-# Add hour hand
-hour_hand_start, hour_hand_end = add_hand_and_arc(msp, center, hour_hand_length, hour_hand_width, hour_angle, circle_radius)
+# Define extensions beyond the clock radius for hands
+extend_length = 2  # Length by which hands extend beyond the clock radius
 
-# Add minute hand
-minute_hand_start, minute_hand_end = add_hand_and_arc(msp, center, minute_hand_length, minute_hand_width, minute_angle, circle_radius)
+# Create the main clock face
+clock_face = Point(clock_center).buffer(clock_radius)
 
-# Draw the arcs to connect the hands to the central circle
-# Arc from the end of the hour hand to the start of the minute hand
-msp.add_arc(center, circle_radius, start_angle=degrees(atan2(hour_hand_end[1]-center[1], hour_hand_end[0]-center[0])),
-            end_angle=degrees(atan2(minute_hand_start[1]-center[1], minute_hand_start[0]-center[0])))
+# Hour and minute hand directions and lengths
+hour_hand_direction = 30  # Example: 30 degrees for the hour hand
+minute_hand_direction = 120  # Example: 120 degrees for the minute hand
+hour_hand_length = clock_radius  # Use the clock radius as the base length
+minute_hand_length = clock_radius  # Similarly for the minute hand
 
-# Arc from the end of the minute hand to the start of the hour hand
-msp.add_arc(center, circle_radius, start_angle=degrees(atan2(minute_hand_end[1]-center[1], minute_hand_end[0]-center[0])),
-            end_angle=degrees(atan2(hour_hand_start[1]-center[1], hour_hand_start[0]-center[0])))
+# Create extended hand shapes
+hour_hand_shape = create_extended_hand_shape(clock_center, hour_hand_direction, hour_hand_length, 0.5, extend_length)
+minute_hand_shape = create_extended_hand_shape(clock_center, minute_hand_direction, minute_hand_length, 0.25, extend_length)
 
-# Save the DXF file
-doc.saveas("clock_design.dxf")
+# Combine the hour and minute hand shapes
+combined_hands_shape = unary_union([hour_hand_shape, minute_hand_shape])
+
+# Subtract the combined hand shape from the clock face to create extended notches
+final_clock_face = clock_face.difference(combined_hands_shape)
+
+# Check if the result is a Polygon or a MultiPolygon and handle accordingly
+if isinstance(final_clock_face, Polygon):
+    # If the result is a single Polygon, plot it directly
+    final_shape_coords = list(final_clock_face.exterior.coords)
+    msp.add_lwpolyline(final_shape_coords)
+elif isinstance(final_clock_face, MultiPolygon):
+    # If the result is a MultiPolygon, iterate over each Polygon using .geoms and plot it
+    for polygon in final_clock_face.geoms:
+        final_shape_coords = list(polygon.exterior.coords)
+        msp.add_lwpolyline(final_shape_coords)
+
+# Draw the modified clock face with extended notches for hands
+
+# Optionally, draw the combined hand shape as a separate object (if desired)
+# msp.add_lwpolyline(combined_hands_shape_coords, is_closed=True)
+
+# Save the DXF document
+filename = "clock_with_cutouts_design.dxf"
+doc.saveas(filename)
