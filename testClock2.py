@@ -5,12 +5,14 @@ from shapely import MultiPolygon
 from shapely.geometry import Point, LineString, Polygon
 from shapely.ops import unary_union
 
+
 def create_hand_shape(start, end, width):
     """
     Creates a hand shape from the start to the end point with a given width.
     """
     line = LineString([start, end])
     return line.buffer(width / 2, cap_style=2)  # Squared ends
+
 
 def offset_point_from_center(center, angle, offset):
     """
@@ -19,8 +21,9 @@ def offset_point_from_center(center, angle, offset):
     radian_angle = math.radians(angle)
     return (
         center[0] + offset * math.cos(radian_angle),
-        center[1] + offset * math.sin(radian_angle)
+        center[1] - offset * math.sin(radian_angle)
     )
+
 
 # Initialize a new DXF document
 doc = ezdxf.new('R2010')
@@ -34,19 +37,23 @@ clock_radius = 10  # Clock face radius
 clock_face = Point(clock_center).buffer(clock_radius)
 
 # Define hand properties
-hour_hand_direction = 30  # Example: 30 degrees for the hour hand
-minute_hand_direction = 120  # Example: 120 degrees for the minute hand
-hour_hand_width = 0.5
-minute_hand_width = 0.25
+current_hour = 6  # Example: 30 degrees for the hour hand
+current_minute = 15  # Example: 120 degrees for the minute hand
+hour_hand_width = 1
+minute_hand_width = .5
+hour_hand_length = 1
+minute_hand_length = 1.5
 extend_length = 2  # Length by which hands extend beyond the clock radius
 
 # Calculate the starting points for the hour and minute hands one unit inside the clock face
-hour_hand_start = offset_point_from_center(clock_center, hour_hand_direction, clock_radius - 1)
-minute_hand_start = offset_point_from_center(clock_center, minute_hand_direction, clock_radius - 1)
+hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30 - 90
+hour_hand_start = offset_point_from_center(clock_center, hour_angle_degrees, clock_radius - hour_hand_length)
+minute_angle_degrees = current_minute * 6 - 90
+minute_hand_start = offset_point_from_center(clock_center, minute_angle_degrees, clock_radius - minute_hand_length)
 
 # Calculate the ending points for the hour and minute hands
-hour_hand_end = offset_point_from_center(hour_hand_start, hour_hand_direction, extend_length)
-minute_hand_end = offset_point_from_center(minute_hand_start, minute_hand_direction, extend_length)
+hour_hand_end = offset_point_from_center(hour_hand_start, hour_angle_degrees, extend_length)
+minute_hand_end = offset_point_from_center(minute_hand_start, minute_angle_degrees, extend_length)
 
 # Create the hand shapes
 hour_hand_shape = create_hand_shape(hour_hand_start, hour_hand_end, hour_hand_width)
