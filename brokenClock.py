@@ -136,6 +136,25 @@ def draw_polyline_with_ezdxf(points, close):
 
 # The main drawing function
 def draw_clock(center, radius, current_hour, current_minute):
+
+    hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
+    hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees, hour_hand_length)
+    minute_angle_degrees = current_minute * 6
+    minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees, minute_hand_length)
+
+    # Create polygons for hour and minute hands
+    hour_hand_polygon = create_hand_polygon(hour_hand_start, hour_hand_end, unit_converter(hour_hand_width))
+    minute_hand_polygon = create_hand_polygon(minute_hand_start, minute_hand_end, unit_converter(minute_hand_width))
+
+    # Create a circle polygon for the hand attachment
+    hand_attachment_circle = Point(center).buffer(unit_converter(hour_hand_width) / 2 + .005)
+
+    # Combine all shapes
+    combined_polygon = unary_union([hour_hand_polygon, minute_hand_polygon, hand_attachment_circle])
+
+    # Draw the combined shape with ezdxf
+    draw_combined_shape_with_ezdxf(combined_polygon)
+
     # Minute markers
     if add_minute_markers:
         for minute_marker in range(60):
@@ -159,26 +178,6 @@ def draw_clock(center, radius, current_hour, current_minute):
             corners = rectangle_edges(start, end, unit_converter(five_minute_line_width))
             draw_polyline_with_ezdxf(corners, close=True)
 
-    hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
-    hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees, hour_hand_length)
-    minute_angle_degrees = current_minute * 6
-    minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees, minute_hand_length)
-
-    # Create polygons for hour and minute hands
-    hour_hand_polygon = create_hand_polygon(hour_hand_start, hour_hand_end, unit_converter(hour_hand_width))
-    minute_hand_polygon = create_hand_polygon(minute_hand_start, minute_hand_end, unit_converter(minute_hand_width))
-
-    # Create a circle polygon for the hand attachment
-    hand_attachment_circle = Point(center).buffer(unit_converter(hour_hand_width) / 2 + .005)
-
-    # Combine all shapes
-    combined_polygon = unary_union([hour_hand_polygon, minute_hand_polygon, hand_attachment_circle])
-
-    # Draw the combined shape with ezdxf
-    draw_combined_shape_with_ezdxf(combined_polygon)
-
-    # Add additional elements like markers if needed here
-
 
 def calculate_clock_position(rows, cols):
     x = (cols + 0.5) * (unit_converter(clock_diameter) + unit_converter(spacing)) + unit_converter(spacing / 2)
@@ -199,12 +198,6 @@ def get_led_index(n):
     tile_linear_index = tile_row * width_in_tiles + tile_column
     overall_index = tile_linear_index * 9 + index_in_tile
     return overall_index
-
-
-def generate_lookup_table():
-    max_n = width_in_tiles * 3 * height_in_tiles * 3
-    lookup_table = [get_led_index(n) for n in range(max_n)]
-    return lookup_table
 
 
 # Main execution
