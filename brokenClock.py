@@ -1,6 +1,8 @@
 import ezdxf
 import numpy as np
 import random
+from shapely.geometry import Polygon, Point
+from shapely.ops import unary_union
 
 # Clock Face and Sizing (unchanged)
 clock_face = False
@@ -33,7 +35,7 @@ minute_line_offset = 0.95
 hand_color = 'black'
 hour_hand_length = 0.5
 hour_hand_width = 1.25
-minute_hand_length = 0.8
+minute_hand_length = 0.75
 minute_hand_width = 1
 
 # Layout and Size (unchanged)
@@ -99,6 +101,22 @@ def calculate_hand_points(center, radius, angle_degrees, hand_length):
 
     return center, (end_x, end_y)
 
+
+def create_hand_polygon(start, end, width):
+    corners = rectangle_edges(start, end, width)
+    if corners:
+        # Ensure the polygon is closed by repeating the first point
+        corners.append(corners[0])
+        return Polygon(corners)
+    return None
+
+def draw_combined_shape_with_ezdxf(polygon):
+    # Extract exterior coordinates of the polygon to draw with ezdxf
+    if polygon.is_empty:
+        return
+    exterior_coords = list(polygon.exterior.coords)
+    msp.add_lwpolyline(exterior_coords)
+
 # Initialize ezdxf doc
 doc = ezdxf.new('R2010')
 msp = doc.modelspace()
@@ -114,28 +132,11 @@ def draw_hand_or_marker_with_ezdxf(start, end, width):
 def draw_circle_with_ezdxf(center, radius):
     msp.add_circle(center=center, radius=radius)
 
-def draw_polyline_with_ezdxf(points, close=False):
+def draw_polyline_with_ezdxf(points,close):
     # Adding the start point at the end to close the polyline if necessary
     if close:
         points.append(points[0])
     msp.add_lwpolyline(points, close=close)
-
-
-def line_intersection(line1, line2):
-    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
-
-    def det(a, b):
-        return a[0] * b[1] - a[1] * b[0]
-
-    div = det(xdiff, ydiff)
-    if div == 0:
-       raise Exception('Lines do not intersect')
-
-    d = (det(*line1), det(*line2))
-    x = det(d, xdiff) / div
-    y = det(d, ydiff) / div
-    return x, y
 
 
 # The main drawing function
@@ -162,21 +163,24 @@ def draw_clock(center, radius, current_hour, current_minute):
             corners = rectangle_edges(start, end, unit_converter(five_minute_line_width))
             # Similarly, draw these markers as closed polylines
             draw_polyline_with_ezdxf(corners, close=True)
-    # Hour hand
+
     hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
     hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees, hour_hand_length)
-    converted_hour_hand_width = unit_converter(hour_hand_width)
-    draw_hand_or_marker_with_ezdxf(hour_hand_start, hour_hand_end, converted_hour_hand_width)
-
-    # Minute hand
     minute_angle_degrees = current_minute * 6
     minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees, minute_hand_length)
-    converted_minute_hand_width = unit_converter(minute_hand_width)
-    draw_hand_or_marker_with_ezdxf(minute_hand_start, minute_hand_end, converted_minute_hand_width)
 
-    # Hand attachment circle
-    hand_attachment_circle_radius = unit_converter(0.625)  # Example radius, adjust as needed
-    draw_circle_with_ezdxf(center, hand_attachment_circle_radius)
+    # Create polygons for hour and minute hands
+    hour_hand_polygon = create_hand_polygon(hour_hand_start, hour_hand_end, unit_converter(hour_hand_width))
+    minute_hand_polygon = create_hand_polygon(minute_hand_start, minute_hand_end, unit_converter(minute_hand_width))
+
+    # Create a circle polygon for the hand attachment
+    hand_attachment_circle = Point(center).buffer(unit_converter(hour_hand_width) / 2+.005)
+
+    # Combine all shapes
+    combined_polygon = unary_union([hour_hand_polygon, minute_hand_polygon, hand_attachment_circle])
+
+    # Draw the combined shape with ezdxf
+    draw_combined_shape_with_ezdxf(combined_polygon)
 
     # Add additional elements like markers if needed here
 # Calculate position utility (unchanged)
