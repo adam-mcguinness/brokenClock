@@ -2,9 +2,7 @@ import config
 import ezdxf
 import random
 from drawDxf import calculate_clock_position
-from unitConverter import unit_converter
 from clockFuntion import draw_clock
-
 
 def get_led_index(n):
     # Constants for the 3x3 LED tiles
@@ -37,9 +35,15 @@ def get_led_index(n):
 
     return overall_index
 
-
 def main():
     doc = ezdxf.new('R2010')
+    unit_codes = {
+        "mm": 4,  # Millimeters
+        "cm": 5,  # Centimeters
+        "feet": 2,  # Feet
+        "inches": 1  # Inches
+    }
+    doc.header['$INSUNITS'] = unit_codes[config.units.lower().strip()]
     msp = doc.modelspace()
 
     times = list(range(720))  # 720 minutes for 12 hours
@@ -53,7 +57,7 @@ def main():
         minute = time % 60
         row, col = divmod(i, config.grid_cols)
         center_x, center_y = calculate_clock_position(row, col)
-        draw_clock(config.clock_style, (center_x, center_y), unit_converter(config.clock_diameter) / 2, hour, minute,
+        draw_clock(config.clock_style, (center_x, center_y), config.clock_diameter / 2, hour, minute,
                    msp)
         # Formatting time for 12-hour clock with AM/PM notation
         formatted_time = f"{hour % 12 if hour % 12 else 12}:{minute:02d}"
