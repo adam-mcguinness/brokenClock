@@ -10,42 +10,44 @@ Wrote some trash python with a little help from ChatGPT and we are in business.
 
 Vars you can play with:
 
-| Variable Name               | Type     | Default Value | Description                                                                                          |
-|-----------------------------|----------|---------------|------------------------------------------------------------------------------------------------------|
-| `clock_face`                | bool     | `False`       | Enable drawing the clock face.                                                                       |
-| `clock_face_edge_color`     | string   | `'white'`     | Color of the clock face edge.                                                                        |
-| `clock_face_face_color`     | string   | `'none'`      | Fill color of the clock face.                                                                        |
-| `clock_face_line_width`     | int      | `2`           | Line width of the clock face edge.                                                                   |
-| `add_quarter_hour_markers`  | bool     | `True`        | Enable drawing quarter-hour markers.                                                                 |
-| `quarter_hour_line_color`   | string   | `'white'`     | Color of the quarter-hour markers.                                                                   |
-| `quarter_hour_line_length`  | float    | `0.1`         | Length of the quarter-hour marker lines.                                                             |
-| `quarter_hour_line_width`   | int      | `1`           | Line width of the quarter-hour markers.                                                              |
-| `quarter_hour_line_offset`  | float    | `0.95`        | Offset from the center for quarter-hour markers.                                                     |
-| `add_5_minute_markers`      | bool     | `False`       | Enable drawing 5-minute markers.                                                                     |
-| `five_minute_color`         | string   | `'white'`     | Color of the 5-minute markers.                                                                       |
-| `five_minute_line_length`   | float    | `0.075`       | Length of the 5-minute marker lines.                                                                 |
-| `five_minute_line_width`    | float    | `0.5`         | Line width of the 5-minute markers.                                                                  |
-| `five_minute_line_offset`   | float    | `0.95`        | Offset from the center for 5-minute markers.                                                         |
-| `add_minute_markers`        | bool     | `False`       | Enable drawing 1-minute markers.                                                                     |
-| `minute_line_color`         | string   | `'white'`     | Color of the minute markers.                                                                         |
-| `minute_line_length`        | float    | `0.05`        | Length of the minute marker lines.                                                                   |
-| `minute_line_width`         | float    | `0.25`        | Line width of the minute markers.                                                                    |
-| `minute_line_offset`        | float    | `0.95`        | Offset from the center for minute markers.                                                           |
-| `hand_color`                | string   | `'white'`     | Color of the clock hands.                                                                            |
-| `hour_hand_length`          | float    | `0.5`         | Length of the hour hand.                                                                             |
-| `hour_hand_width`           | int      | `2`           | Width of the hour hand.                                                                              |
-| `minute_hand_length`        | float    | `0.8`         | Length of the minute hand.                                                                           |
-| `minute_hand_width`         | float    | `1.5`         | Width of the minute hand.                                                                            |
-| `units`                     | string   | `'mm'`        | Measurement units for layout and size. choose from `'inches'`, `'cm'`, `'mm'`, `'feet'`, `'meters'`. |
-| `grid_rows`, `grid_cols`    | int, int | `24, 30`      | Number of rows and columns in the grid layout.                                                       |
-| `clock_diameter`            | int      | `30`          | Diameter of each clock.                                                                              |
-| `spacing`                   | int      | `10`          | Spacing between clocks in the grid.                                                                  |
-| `background_color`          | string   | `'black'`     | Background color of the figure.                                                                      |
-| `randomize_clocks`          | bool     | `False`       | Whether to randomize the positions of the clocks.                                                    |
-| `leds_per_tile`             | int      | `3`           | Number of LEDs per tile in the mapping.                                                              |
-| `width_in_tiles`, `height_in_tiles` | int, int | Calculated | Width and height of the grid in tiles, calculated.                                                   |
+| Variable Name                       | Type     | Default Value | Description                                                                              |
+|-------------------------------------|----------|---------------|------------------------------------------------------------------------------------------|
+| `style`                             | bool     | `False`       | Type of clock design. choose from `'standard'`, `'notch'`, `'cutout'`.                   |
+| `clock_face`                        | bool     | `False`       | Enable drawing the clock face.                                                           |
+| `clock_face_face_color`             | string   | `'none'`      | Not used currently.                                                                      |
+| `clock_face_line_width`             | int      | `2`           | Line width of the clock face edge.                                                       |
+| `add_quarter_hour_markers`          | bool     | `True`        | Enable drawing quarter-hour markers.                                                     |
+| `quarter_hour_line_color`           | string   | `'white'`     | Not used currently.                                                                      |
+| `quarter_hour_line_length`          | float    | `0.1`         | Length of the quarter-hour marker lines.                                                 |
+| `quarter_hour_line_width`           | int      | `1`           | Line width of the quarter-hour markers.                                                  |
+| `quarter_hour_line_offset`          | float    | `0.95`        | Offset from the center for quarter-hour markers.                                         |
+| `add_5_minute_markers`              | bool     | `False`       | Enable drawing 5-minute markers.                                                         |
+| `five_minute_color`                 | string   | `'white'`     | Not used currently.                                                                      |
+| `five_minute_line_length`           | float    | `0.075`       | Length of the 5-minute marker lines.                                                     |
+| `five_minute_line_width`            | float    | `0.5`         | Line width of the 5-minute markers.                                                      |
+| `five_minute_line_offset`           | float    | `0.95`        | Offset from the center for 5-minute markers.                                             |
+| `add_minute_markers`                | bool     | `False`       | Enable drawing 1-minute markers.                                                         |
+| `minute_line_color`                 | string   | `'white'`     | Color of the minute markers.                                                             |
+| `minute_line_length`                | float    | `0.05`        | Length of the minute marker lines.                                                       |
+| `minute_line_width`                 | float    | `0.25`        | Line width of the minute markers.                                                        |
+| `minute_line_offset`                | float    | `0.95`        | Offset from the center for minute markers.                                               |
+| `hand_color`                        | string   | `'white'`     | Not used currently.                                                                      |
+| `hour_hand_length`                  | float    | `0.5`         | Length of the hour hand.                                                                 |
+| `hour_hand_width`                   | int      | `2`           | Width of the hour hand.                                                                  |
+| `minute_hand_length`                | float    | `0.8`         | Length of the minute hand.                                                               |
+| `minute_hand_width`                 | float    | `1.5`         | Width of the minute hand.                                                                |
+| `units`                             | string   | `'mm'`        | Measurement units for layout and size. choose from `'inches'`, `'feet'`, `'cm'`, `'mm'`. |
+| `grid_rows`, `grid_cols`            | int, int | `24, 30`      | Number of rows and columns in the grid layout.                                           |
+| `clock_diameter`                    | int      | `30`          | Diameter of each clock.                                                                  |
+| `spacing`                           | int      | `10`          | Spacing between clocks in the grid.                                                      |
+| `background_color`                  | string   | `'black'`     | Not used currently.                                                                      |
+| `randomize_clocks`                  | bool     | `False`       | Whether to randomize the positions of the clocks.                                        |
+| `leds_per_tile`                     | int      | `3`           | Number of LEDs per tile in the mapping.                                                  |
+| `width_in_tiles`, `height_in_tiles` | int, int | Calculated    | Width and height of the grid in tiles, calculated.                                       |
 
 This also outputs the required vars and mapping to a .h file for importing to the microcontroller. After shuffling the clocks would be a major PITA to map manually.
+
+Did alot of refactoring and now this outputs a dxf file directly for use with a plotter or laser cutter.
 
 ### **Fun Fact**: 
 The chance of generating the same clock as someone else is ≈720! or greater than 1 in 2.60e1746. Meaning if you generated one every Planck time from the big bang until the heat death of the universe, you wouldn't even begin to scratch the surface of generating a duplicate. You would need another 10e1596 universe lengths to get there. 

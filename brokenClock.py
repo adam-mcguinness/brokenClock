@@ -4,6 +4,7 @@ import random
 from drawDxf import calculate_clock_position
 from clockFuntion import draw_clock
 
+
 def get_led_index(n):
     # Constants for the 3x3 LED tiles
     leds_per_tile_side = 3
@@ -35,6 +36,7 @@ def get_led_index(n):
 
     return overall_index
 
+
 def main():
     doc = ezdxf.new('R2010')
     unit_codes = {
@@ -46,11 +48,11 @@ def main():
     doc.header['$INSUNITS'] = unit_codes[config.units.lower().strip()]
     msp = doc.modelspace()
 
-    times = list(range(720))  # 720 minutes for 12 hours
+    times = list(range(720))
     if config.randomize_clocks:
         random.shuffle(times)
 
-    time_to_position = {}  # Dictionary to hold the time to position mapping
+    time_to_position = {}
 
     for i, time in enumerate(times):
         hour = time // 60
