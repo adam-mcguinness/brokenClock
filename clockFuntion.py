@@ -1,19 +1,14 @@
 import config
 from unitConverter import unit_converter
 import numpy as np
+import math
+from shapely import MultiPolygon, LineString
 from shapely.geometry import Polygon, Point
 from shapely.ops import unary_union
 from drawDxf import draw_polyline_with_ezdxf, draw_combined_shape_with_ezdxf
 
 
 def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
-    hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
-    hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees,
-                                                           config.hour_hand_length)
-    minute_angle_degrees = current_minute * 6
-    minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees,
-                                                               config.minute_hand_length)
-
     # Minute markers
     if config.add_minute_markers:
         for minute_marker in range(60):
@@ -27,7 +22,7 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
             start, end = calculate_marker_points(center, radius, five_minute_marker * 30,
                                                  config.five_minute_line_offset,
                                                  config.five_minute_line_length)
-            corners = rectangle_edges(start, end, unit_converter(config.five_minute_line_width))
+            corners = rectangle_edges(start, end, config.five_minute_line_width)
             draw_polyline_with_ezdxf(corners, model_space=msp)
 
     # Quarter-hour markers
@@ -36,20 +31,26 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
             start, end = calculate_marker_points(center, radius, quarter_marker * 30,
                                                  config.quarter_hour_line_offset,
                                                  config.quarter_hour_line_length)
-            corners = rectangle_edges(start, end, unit_converter(config.quarter_hour_line_width))
+            corners = rectangle_edges(start, end, config.quarter_hour_line_width)
             draw_polyline_with_ezdxf(corners, model_space=msp)
 
     match clock_style:
 
         case "standard":
+            hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30
+            hour_hand_start, hour_hand_end = calculate_hand_points(center, radius, hour_angle_degrees,
+                                                                   config.hour_hand_length)
+            minute_angle_degrees = current_minute * 6
+            minute_hand_start, minute_hand_end = calculate_hand_points(center, radius, minute_angle_degrees,
+                                                                       config.minute_hand_length)
             # Create polygons for hour and minute hands
             hour_hand_polygon = create_hand_polygon(hour_hand_start, hour_hand_end,
-                                                    unit_converter(config.hour_hand_width))
+                                                    config.hour_hand_width)
             minute_hand_polygon = create_hand_polygon(minute_hand_start, minute_hand_end,
-                                                      unit_converter(config.minute_hand_width))
+                                                      config.minute_hand_width)
 
             # Create a circle polygon for the hand attachment
-            hand_attachment_circle = Point(center).buffer(unit_converter(config.hour_hand_width) / 2 + .005)
+            hand_attachment_circle = Point(center).buffer(config.hour_hand_width / 2 + .005)
 
             # Combine all shapes
             combined_polygon = unary_union([hour_hand_polygon, minute_hand_polygon, hand_attachment_circle])
@@ -58,10 +59,53 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
             draw_combined_shape_with_ezdxf(combined_polygon, model_space=msp)
 
         case 'notch':
-            return
+            hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30 - 90
+            hour_hand_start = offset_point_from_center(center, hour_angle_degrees, unit_converter(config.clock_diameter) / 2 - unit_converter(config.hour_hand_length))
+            minute_angle_degrees = current_minute * 6 - 90
+            minute_hand_start = offset_point_from_center(center, minute_angle_degrees, unit_converter(config.clock_diameter) / 2 - unit_converter(config.minute_hand_length))
+
+            hour_hand_end = offset_point_from_center(hour_hand_start, hour_angle_degrees, 5)
+            minute_hand_end = offset_point_from_center(minute_hand_start, minute_angle_degrees, 5)
+
+            hour_hand_shape = create_hand_shape(hour_hand_start, hour_hand_end, unit_converter(config.hour_hand_width))
+            minute_hand_shape = create_hand_shape(minute_hand_start, minute_hand_end, unit_converter(config.minute_hand_width))
+
+            combined_hands_shape = unary_union([hour_hand_shape, minute_hand_shape])
+            clock_face = Point(center).buffer(unit_converter(config.clock_diameter) / 2)
+            final_clock_face = clock_face.difference(combined_hands_shape)
+
+            if isinstance(final_clock_face, Polygon):
+                final_shape_coords = list(final_clock_face.exterior.coords)
+                draw_polyline_with_ezdxf(final_shape_coords, model_space=msp)
+            elif isinstance(final_clock_face, MultiPolygon):
+                for polygon in final_clock_face.geoms:
+                    final_shape_coords = list(polygon.exterior.coords)
+                    draw_polyline_with_ezdxf(final_shape_coords, model_space=msp)
 
         case 'cutout':
-            return
+            # Create extended hand shapes with additional length
+            hour_hand_shape = create_extended_hand_polygon(center,
+                                                           (current_hour % 12) * 30 + (current_minute / 60) * 30 - 90,
+                                                           config.hour_hand_length,
+                                                           config.hour_hand_width,
+                                                           5)  # Using 5 as an example extend length
+            minute_hand_shape = create_extended_hand_polygon(center, current_minute * 6 - 90,
+                                                             config.minute_hand_length,
+                                                             config.minute_hand_width, 5)
+
+            # Combine the hour and minute hand shapes
+            combined_hands_shape = unary_union([hour_hand_shape, minute_hand_shape])
+
+            # Create the clock face and subtract the combined hand shapes to create cutouts
+            clock_face = Point(center).buffer(unit_converter(config.clock_diameter) / 2)
+            final_clock_face = clock_face.difference(combined_hands_shape)
+
+            # Draw the final clock face with cutouts
+            if isinstance(final_clock_face, Polygon):
+                draw_combined_shape_with_ezdxf(final_clock_face, model_space=msp)
+            elif isinstance(final_clock_face, MultiPolygon):
+                for polygon in final_clock_face.geoms:
+                    draw_combined_shape_with_ezdxf(polygon, model_space=msp)
 
 
 def rectangle_edges(start, end, width):
@@ -91,25 +135,52 @@ def create_hand_polygon(start, end, width):
     return None
 
 
-def calculate_marker_points(center, radius, angle_degrees, start_offset, line_length):
-    angle_rad = np.radians(90 - angle_degrees)
-    start_radius = radius * start_offset
-    end_radius = start_radius - radius * line_length
+def create_extended_hand_polygon(center, direction, length, width, extend_length):
+    end_x = center[0] + (length + extend_length) * math.cos(math.radians(direction))
+    end_y = center[1] - (length + extend_length) * math.sin(math.radians(direction))
+    line = LineString([center, (end_x, end_y)])
+    return line.buffer(width / 2, cap_style=3)  # Squared ends
 
-    start = (center[0] + start_radius * np.cos(angle_rad),
-             center[1] + start_radius * np.sin(angle_rad))
-    end = (center[0] + end_radius * np.cos(angle_rad),
-           center[1] + end_radius * np.sin(angle_rad))
+
+def calculate_marker_points(center, radius, angle_degrees, start_offset, line_length):
+    # Convert the angle from degrees to radians and adjust the orientation
+    angle_rad = np.radians(90 - angle_degrees)
+
+    # Calculate the end point first; this is offset from the outer edge (red line)
+    # The end point is closer to the center by the start_offset value
+    end = (
+        center[0] + (radius - start_offset) * np.cos(angle_rad),
+        center[1] + (radius - start_offset) * np.sin(angle_rad)
+    )
+
+    # Calculate the start point by moving inward from the end point by the line_length
+    # The start point is further inwards from the center than the end point
+    start = (
+        end[0] - line_length * np.cos(angle_rad),
+        end[1] - line_length * np.sin(angle_rad)
+    )
 
     return start, end
 
 
 def calculate_hand_points(center, radius, angle_degrees, hand_length):
     angle_rad = np.radians(90 - angle_degrees)
-    end_x = center[0] + radius * hand_length * np.cos(angle_rad)
-    end_y = center[1] + radius * hand_length * np.sin(angle_rad)
+    end_x = center[0] + hand_length * np.cos(angle_rad)
+    end_y = center[1] + hand_length * np.sin(angle_rad)
 
     return center, (end_x, end_y)
 
 
+def create_hand_shape(start, end, width):
 
+    line = LineString([start, end])
+    return line.buffer(width / 2, cap_style=2)  # Squared ends
+
+
+def offset_point_from_center(center, angle, offset):
+
+    radian_angle = math.radians(angle)
+    return (
+        center[0] + offset * math.cos(radian_angle),
+        center[1] - offset * math.sin(radian_angle)
+    )
