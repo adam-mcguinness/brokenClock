@@ -1,11 +1,22 @@
 import config
+from shapely.geometry import Polygon, MultiPolygon
 
 
-def draw_combined_shape_with_ezdxf(polygon, model_space):
-    if polygon.is_empty:
+def draw_combined_shape_with_ezdxf(geometry, model_space):
+    # Check if the geometry is empty
+    if geometry.is_empty:
         return
-    exterior_coords = list(polygon.exterior.coords)
-    model_space.add_lwpolyline(exterior_coords, close=True)
+
+    # If the geometry is a Polygon, draw it directly
+    if isinstance(geometry, Polygon):
+        exterior_coords = list(geometry.exterior.coords)
+        model_space.add_lwpolyline(exterior_coords, close=True)
+
+    # If the geometry is a MultiPolygon, iterate over each polygon and draw it
+    elif isinstance(geometry, MultiPolygon):
+        for polygon in geometry.geoms:
+            exterior_coords = list(polygon.exterior.coords)
+            model_space.add_lwpolyline(exterior_coords, close=True)
 
 
 def draw_circle_with_ezdxf(center, radius, model_space):

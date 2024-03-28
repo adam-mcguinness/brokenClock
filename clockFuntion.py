@@ -16,23 +16,25 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
                                                  config.minute_line_length)
             draw_polyline_with_ezdxf([start, end], model_space=msp)
 
-    # 5-minute markers
+    five_minute_marker_polygons = []
     if config.add_5_minute_markers:
         for five_minute_marker in [1, 2, 4, 5, 7, 8, 10, 11]:
             start, end = calculate_marker_points(center, radius, five_minute_marker * 30,
                                                  config.five_minute_line_offset,
                                                  config.five_minute_line_length)
             corners = rectangle_edges(start, end, config.five_minute_line_width)
-            draw_polyline_with_ezdxf(corners, model_space=msp)
+            marker_polygon = Polygon(corners)
+            five_minute_marker_polygons.append(marker_polygon)
 
-    # Quarter-hour markers
+    quarter_hour_marker_polygons = []
     if config.add_quarter_hour_markers:
         for quarter_marker in [0, 3, 6, 9]:
             start, end = calculate_marker_points(center, radius, quarter_marker * 30,
                                                  config.quarter_hour_line_offset,
                                                  config.quarter_hour_line_length)
             corners = rectangle_edges(start, end, config.quarter_hour_line_width)
-            draw_polyline_with_ezdxf(corners, model_space=msp)
+            marker_polygon = Polygon(corners)
+            quarter_hour_marker_polygons.append(marker_polygon)
 
     match clock_style:
 
@@ -53,10 +55,11 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
             hand_attachment_circle = Point(center).buffer(config.hour_hand_width / 2 + .005)
 
             # Combine all shapes
-            combined_polygon = unary_union([hour_hand_polygon, minute_hand_polygon, hand_attachment_circle])
+            all_shapes = [hour_hand_polygon, minute_hand_polygon, hand_attachment_circle] + five_minute_marker_polygons + quarter_hour_marker_polygons
+            combined_shapes = unary_union(all_shapes)
 
             # Draw the combined shape with ezdxf
-            draw_combined_shape_with_ezdxf(combined_polygon, model_space=msp)
+            draw_combined_shape_with_ezdxf(combined_shapes, model_space=msp)
 
         case 'notch':
             hour_angle_degrees = (current_hour % 12) * 30 + (current_minute / 60) * 30 - 90
@@ -93,18 +96,15 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
                                                              config.minute_hand_width, config.clock_diameter)
 
             # Combine the hour and minute hand shapes
-            combined_hands_shape = unary_union([hour_hand_shape, minute_hand_shape])
+            all_shapes = [hour_hand_shape, minute_hand_shape] + five_minute_marker_polygons + quarter_hour_marker_polygons
+            combined_shapes = unary_union(all_shapes)
 
             # Create the clock face and subtract the combined hand shapes to create cutouts
             clock_face = Point(center).buffer(config.clock_diameter / 2)
-            final_clock_face = clock_face.difference(combined_hands_shape)
+            final_clock_face = clock_face.difference(combined_shapes)
 
             # Draw the final clock face with cutouts
-            if isinstance(final_clock_face, Polygon):
-                draw_combined_shape_with_ezdxf(final_clock_face, model_space=msp)
-            elif isinstance(final_clock_face, MultiPolygon):
-                for polygon in final_clock_face.geoms:
-                    draw_combined_shape_with_ezdxf(polygon, model_space=msp)
+            draw_combined_shape_with_ezdxf(final_clock_face, model_space=msp)
 
 
 def rectangle_edges(start, end, width):
