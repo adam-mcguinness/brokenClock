@@ -87,17 +87,16 @@ def draw_clock(clock_style, center, radius, current_hour, current_minute, msp):
             hour_hand_shape = create_extended_hand_polygon(center,
                                                            (current_hour % 12) * 30 + (current_minute / 60) * 30 - 90,
                                                            config.hour_hand_length,
-                                                           config.hour_hand_width,
-                                                           5)  # Using 5 as an example extend length
+                                                           config.hour_hand_width, config.clock_diameter)
             minute_hand_shape = create_extended_hand_polygon(center, current_minute * 6 - 90,
                                                              config.minute_hand_length,
-                                                             config.minute_hand_width, 5)
+                                                             config.minute_hand_width, config.clock_diameter)
 
             # Combine the hour and minute hand shapes
             combined_hands_shape = unary_union([hour_hand_shape, minute_hand_shape])
 
             # Create the clock face and subtract the combined hand shapes to create cutouts
-            clock_face = Point(center).buffer(unit_converter(config.clock_diameter) / 2)
+            clock_face = Point(center).buffer(config.clock_diameter / 2)
             final_clock_face = clock_face.difference(combined_hands_shape)
 
             # Draw the final clock face with cutouts
