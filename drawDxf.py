@@ -1,5 +1,4 @@
 import config
-from unitConverter import unit_converter
 
 
 def draw_combined_shape_with_ezdxf(polygon, model_space):
@@ -18,10 +17,6 @@ def draw_polyline_with_ezdxf(points, model_space):
 
 
 def calculate_clock_position(rows, cols):
-    x = (cols + 0.5) * (
-            unit_converter(config.clock_diameter) + unit_converter(config.spacing)) + unit_converter(
-        config.spacing / 2)
-    y = (config.grid_rows - rows - 0.5) * (
-            unit_converter(config.clock_diameter) + unit_converter(config.spacing)) + unit_converter(
-        config.spacing / 2)
+    x = (cols + 0.5) * (config.clock_diameter + config.spacing) + config.spacing / 2
+    y = (config.grid_rows - rows - 0.5) * (config.clock_diameter + config.spacing) + config.spacing / 2
     return x, y
