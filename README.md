@@ -40,6 +40,7 @@ Vars you can play with:
 | `grid_rows`, `grid_cols`            | int, int | `24, 30`      | Number of rows and columns in the grid layout.                                           |
 | `clock_diameter`                    | int      | `30`          | Diameter of each clock.                                                                  |
 | `spacing`                           | int      | `10`          | Spacing between clocks in the grid.                                                      |
+| `outside_spacing`                   | int      | `20`          | Spacing between the dia. of the clock and the cut outline.                               |
 | `background_color`                  | string   | `'black'`     | Not used currently.                                                                      |
 | `randomize_clocks`                  | bool     | `False`       | Whether to randomize the positions of the clocks.                                        |
 | `leds_per_tile`                     | int      | `3`           | Number of LEDs per tile in the mapping.                                                  |

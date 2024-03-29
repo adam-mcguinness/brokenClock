@@ -38,6 +38,7 @@ units = 'mm'  # options are inches, feet, cm, or mm
 grid_rows, grid_cols = 24, 30
 clock_diameter = 30
 spacing = 10
+outside_spacing = 20
 background_color = 'white'
 randomize_clocks = False
 

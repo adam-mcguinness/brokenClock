@@ -1,7 +1,7 @@
 import config
 import ezdxf
 import random
-from drawDxf import calculate_clock_position
+from drawDxf import calculate_clock_position, draw_polyline_boarder
 from clockFuntion import draw_clock
 
 
@@ -65,6 +65,7 @@ def main():
         formatted_time = f"{hour % 12 if hour % 12 else 12}:{minute:02d}"
         time_to_position[formatted_time] = {"col": col, "row": row}
 
+    draw_polyline_boarder(msp)
     # Save the DXF document
     doc.saveas("720_clocks.dxf")
 
