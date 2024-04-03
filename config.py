@@ -8,15 +8,15 @@ clock_face_line_width = 2
 # Quarter Hour Markers
 add_quarter_hour_markers = True
 quarter_hour_line_color = 'black'
-quarter_hour_line_length = 2
-quarter_hour_line_width = 1
+quarter_hour_line_length = .09
+quarter_hour_line_width = .06
 quarter_hour_line_offset = 0
 
 # 5 Minute Markers
 add_5_minute_markers = True
 five_minute_color = 'black'
-five_minute_line_length = 1
-five_minute_line_width = 0.5
+five_minute_line_length = .05
+five_minute_line_width = .04
 five_minute_line_offset = 0
 
 # 1 Minute Markers
@@ -28,17 +28,17 @@ minute_line_offset = 0.95
 
 # Hands
 hand_color = 'black'
-hour_hand_length = 8
-hour_hand_width = 2
-minute_hand_length = 12
-minute_hand_width = 1.25
+hour_hand_length = .3
+hour_hand_width = .09
+minute_hand_length = .44
+minute_hand_width = .06
 
 # Layout and Size
-units = 'mm'  # options are inches, feet, cm, or mm
+units = 'inches'  # options are inches, feet, cm, or mm
 grid_rows, grid_cols = 24, 30
-clock_diameter = 30
-spacing = 10
-outside_spacing = 20
+clock_diameter = 1.15
+spacing = .35
+outside_spacing = .7
 background_color = 'white'
 randomize_clocks = False
 
