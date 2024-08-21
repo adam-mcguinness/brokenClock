@@ -111,7 +111,26 @@ This is v0.1 just ordered for testing. Will add a changelog here.
 ## Display
 
 ### Clocks
-Still working out what would be best here. The running idea is to use a piece of glass or acrylic to hold a window cling or vinyl sticker for the clock faces. This should allow cheap manufacturing while providing the desired effect.
+Still working out what would be best here. The running idea is to use a piece of glass or acrylic to hold a window cling or vinyl sticker for the clock faces. This should allow cheap manufacturing while providing the desired effect. After much research and prototyping this is the idea I have landed on. Sticking with a standard 24x30 grid as shown in the python code is not going to be financially viable and instead will be moving to a long but thinner setup. I have worked out the options and their associated display ratios in the chart below.  
+
+| Rows  | Columns | Aspect Ratio |
+|-------|---------|--------------|
+| 3     | 240     | 1:80         |
+| 6     | 120     | 1:20         |
+| 9     | 80      | 9:80         |
+| 12    | 60      | 1:5          |
+| 15    | 48      | 5:16         |
+| 24    | 30      | 4:5          |
+| 30    | 24      | 5:4          |
+| 48    | 15      | 16:5         |
+| 60    | 12      | 5:1          |
+| 120   | 6       | 20:1         |
+| 240   | 3       | 80:1         |
+
+#### The Supplemental Matrix
+As you can see above some of the aspect ratios are limited, enter the **Supplemental Matrix.**
+
+To allow for a more extended range of sizes I am adding 2 PCB layouts to allow using any combination of ratios. 
 ### Wall Mount/Bracket
 Thinking about 3D printed parts to hold the LED Matrix boards, direct the light, and allow for modular connecting.
 
