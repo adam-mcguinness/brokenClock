@@ -35,7 +35,7 @@ minute_hand_width = 1
 
 # Layout and Size
 units = 'mm'  # options are inches, feet, cm, or mm
-grid_rows, grid_cols = 18, 40
+grid_rows, grid_cols = 24, 30
 clock_diameter = 20
 spacing = 8
 outside_spacing = 15

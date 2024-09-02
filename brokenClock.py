@@ -7,7 +7,7 @@ from clockFuntion import draw_clock
 
 def get_led_index(n):
     # Constants for the 3x3 LED tiles
-    leds_per_tile_side = 3
+    leds_per_tile_side = config.leds_per_tile
     leds_per_tile = leds_per_tile_side ** 2
     tiles_per_row = config.grid_cols // leds_per_tile_side
 
