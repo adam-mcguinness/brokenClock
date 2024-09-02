@@ -26,7 +26,7 @@ bool lastSecondButtonState = LOW;
 bool displayMode = false;
 
 unsigned long lastDebounceTime = 0;
-unsigned long debounceDelay = 50;
+unsigned long debounceDelay = 100;
 unsigned long lastModeSwitchTime = 0;
 
 const uint16_t totalRows = 24;
