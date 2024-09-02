@@ -1,7 +1,7 @@
 class config:
     leds_per_tile = 3  # Assuming 3x3 tiles
-    grid_cols = 40  # Width of the grid (7 columns)
-    grid_rows = 18  # Height of the grid (6 rows)
+    grid_cols = 7  # Width of the grid (7 columns)
+    grid_rows = 9  # Height of the grid (6 rows)
 
 
 def get_led_index(n):
@@ -14,17 +14,17 @@ def get_led_index(n):
 
     # led configuration
     leds_per_standard_tile = leds_per_tile_side ** 2
-    leds_per_supplemental_col_tile = 0
+    # print(f"LEDs per Standard Tile: {leds_per_standard_tile}")
     if extra_cols > 0:
         leds_per_supplemental_col_tile = leds_per_tile_side * extra_cols
-        # print(f"LEDs per Supplemental Row Tile: {leds_per_supplemental_col_tile}")
+        # print(f"LEDs per Supplemental Row Tile: {leds_per_supplemental_row_tile}")
     if extra_rows > 0:
         leds_per_supplemental_row_tile = leds_per_tile_side * extra_rows
 
     # Calculate basic grid position
     led_grid_row = n // total_cols
     led_grid_col = n % total_cols
-    print(f"LED {n}: Position -> Row: {led_grid_row}, Column: {led_grid_col}")
+    # print(f"LED {n}: Position -> Row: {led_grid_row}, Column: {led_grid_col}")
 
     # Determine tiles per row
     standard_tiles_per_row = total_cols // leds_per_tile_side
@@ -71,7 +71,7 @@ def get_led_index(n):
     # reverse this for odd rows?
 
     leds_before_current_tile = leds_in_rows_above + (led_tile_col * leds_per_standard_tile)
-    print(f"LEDs Before Current Tile: {leds_before_current_tile}")
+    # print(f"LEDs Before Current Tile: {leds_before_current_tile}")
     if led_tile_row % 2 == 1:
         led_tile_col = (tiles_per_row - 1) - led_tile_col
         # print(f"Snaking Adjustment -> Column: {led_tile_col}")
@@ -85,7 +85,7 @@ def get_led_index(n):
     return overall_index
 
 
-index_list = [199]
+index_list = [42, 52, 62]
 for idx in index_list:
     led_index = get_led_index(idx)
     print(f"LED at index {idx} is the {led_index} led in the chain.")
