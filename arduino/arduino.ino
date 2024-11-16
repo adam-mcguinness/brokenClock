@@ -101,7 +101,8 @@ void loop() {
         minutesIntoCycle = minutesIntoCycle % 720; // Ensures wrapping at the end of 12-hour cycle
 
         if (minutesIntoCycle < NUM_LEDS) {
-            int ledIndex = getLedIndex(minutesIntoCycle);
+            int timeMapping = pgm_read_word_near(ledMap + minutesIntoCycle);
+            int ledIndex = getLedIndex(timeMapping);
             lightUpLED(ledIndex);
         } else {
             Serial.println("Error: Calculated LED index is out of range.");
